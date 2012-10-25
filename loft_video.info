@@ -1,0 +1,7 @@
+; $Id$
+name = Loft Video
+description = Custom module by In the Loft Studios to add video to a Drupal Site
+package = In the Loft Studios
+core = 6.x
+version = "6.x-dev"
+package = In the Loft Studios

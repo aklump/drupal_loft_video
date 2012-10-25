@@ -1,0 +1,119 @@
+<?php
+// $Id$
+
+/**
+* @file
+* Base module file for loft_video
+*/
+
+/**
+ * Implementation of hook_theme
+ */
+function loft_video_theme($existing, $type, $theme, $path) {
+  return array(
+    'loft_video_player' => array(
+      'arguments' => array('vars' => NULL),
+      'file' => 'loft_video.pages.inc',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_preprocess_node()
+ */
+function loft_video_preprocess_node(&$vars) {
+  $node = $vars['node'];
+  $config = loft_video_video_config();
+  if (in_array($vars['type'], array_keys($config))) {
+    foreach (loft_video_file_urls($node) as $field => $video_url) {
+
+      // Add in the width and height to the style
+      $style  = isset($config[$node->type][$field]['style'])
+                ? $config[$node->type][$field]['style']
+                : '';
+      $style .= isset($config[$node->type][$field]['width'])
+                ? 'width: ' . intval($config[$node->type][$field]['width']) . 'px; '
+                : '';
+      $style .= isset($config[$node->type][$field]['height'])
+                ? 'height: ' . intval($config[$node->type][$field]['height']) . 'px; '
+                : '';
+
+      // Put the autoplay directive in the correct $config var based on player
+      $autoplay = isset($config[$node->type][$field]['autoplay'])
+                ? $config[$node->type][$field]['autoplay']
+                : TRUE;
+
+      switch ($config[$node->type][$field]['type']) {
+        case 'flowplayer':
+        case 'flowplayer_ipad':
+          $config[$node->type][$field]['config']['clip']['autoPlay'] = $autoplay;
+          break;
+      }
+
+      // Add the themed variable
+      $vars[$field . '_embed'] = theme('loft_video_player', array(
+        'url' => $video_url,
+        'type' => isset($config[$node->type][$field]['type']) ? $config[$node->type][$field]['type'] : 'flowplayer',
+        'attributes' => array(
+          'id' => strtolower(preg_replace('/[\W_]+/', '-', 'video-player-' . $node->nid . '-' . $field)),
+          'style' => $style,
+        ),
+        'config' => isset($config[$node->type][$field]['config']) ? $config[$node->type][$field]['config'] : array(),
+        )
+      );
+      if (isset($config[$node->type][$field]['content_render'])
+          && $config[$node->type][$field]['content_render'] == TRUE) {
+        $vars['content'] = str_replace($vars['field_video_file_rendered'], $vars[$field . '_embed'], $vars['content']);
+      }
+      if (module_exists('filefield_meta')) {
+        $vars[$field . '_duration'] = format_interval(ceil($node->field_video_file[0]['data']['duration']));
+      }
+    }
+  }
+}
+
+/**
+ * Return info about video configuration: node types, players,etc.
+ *
+ * @return array
+ * - keys are the node type machine names
+ * - values are arrays
+ *
+ * @see hook_loft_video
+ */
+function loft_video_video_config($reset = FALSE) {
+  static $config = array();
+  if (empty($config) || $reset) {
+    $config = module_invoke_all('loft_video');
+  }
+  return $config;
+}
+
+/**
+ * Get the video urls from a video node
+ *
+ * @return array
+ * - keys: fieldname
+ * - values: the url to the video file
+ */
+function loft_video_file_urls($node) {
+  $types = loft_video_video_config();
+  $video_urls = array();
+  foreach (array_keys($types[$node->type]) as $field) {
+    if (isset($node->{$field}[0]['filepath'])) {
+      $video_urls[$field] = file_create_url($node->{$field}[0]['filepath']);
+    }
+  }
+  drupal_alter('loft_video_file_urls', $video_urls, $node);
+  return $video_urls;
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function loft_video_views_api() {
+  return array(
+    'api' => '2',
+    'path' => drupal_get_path('module', 'loft_video'),
+  );
+}
