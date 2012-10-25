@@ -1,8 +1,8 @@
 <?php
-// $Id$ 
+// $Id$
 
-/** 
-* @file 
+/**
+* @file
 * Base module file for loft_video
 */
 
@@ -36,31 +36,31 @@ function theme_loft_video_player($vars) {
   $output = '';
   if ($vars['type'] == 'flowplayer') {
     $fp_path = drupal_get_path('module', 'loft_video') . '/flowplayer';
-    
+
     //add the flowplayer js
     drupal_add_js($fp_path . '/example/flowplayer-3.2.4.min.js');
     drupal_add_css(drupal_get_path('module', 'loft_video') . '/loft_video.css', 'module');
-  
+
     static $fp_index = 1;
     $attributes = array(
       'id' => isset($vars['attributes']['id']) ? $vars['attributes']['id'] : 'flowplayer-' . $fp_index++,
       'class' => isset($vars['attributes']['class']) ? $vars['attributes']['class'] . ' flowplayer' : 'flowplayer',
       'style' => isset($vars['attributes']['style']) ? rtrim($vars['attributes']['style'], '; ') . '; display: block; ' : 'display: block;',
     );
-  
+
     $output .= '<a href="' . $vars['url'] . '" ' . drupal_attributes($attributes) . '></a>' . "\n";
-    
+
     $flashvars = array(
       'src' => '/' . $fp_path . "/flowplayer-3.2.5.swf"
     );
-    
+
     //allow the users to add in some vars
     $flashvars += isset($vars['flashvars']) ? (array)$vars['flashvars'] : array();
-    
+
     $flashvars += array(
       'wmode' => 'transparent',
-    );    
-    
+    );
+
     $output .= '<script type="text/javascript">
   <!--//--><![CDATA[//><!--
   flowplayer("' . $attributes['id'] . '", ' . drupal_json_encode($flashvars) . ');
@@ -78,12 +78,12 @@ function loft_video_preprocess_node(&$vars) {
   $video_types = _loft_video_get_video_types();
   if (in_array($vars['type'], array_keys($video_types))) {
     foreach (_loft_video_get_video_urls($node) as $field => $video_url) {
-      
+
       //add in the width and height to the style
       $style = isset($video_types[$node->type][$field]['style']) ? $video_types[$node->type][$field]['style'] : '';
       $style .= isset($video_types[$node->type][$field]['width']) ? 'width: ' . intval($video_types[$node->type][$field]['width']) . 'px; ' : '';
       $style .= isset($video_types[$node->type][$field]['height']) ? 'height: ' . intval($video_types[$node->type][$field]['height']) . 'px; ' : '';
-      
+
       $vars[$field . '_embed'] = theme('loft_video_player', array(
         'url' => $video_url,
         'type' => isset($video_types[$node->type][$field]['type']) ? $video_types[$node->type][$field]['type'] : 'flowplayerff',
@@ -91,7 +91,7 @@ function loft_video_preprocess_node(&$vars) {
           'id' => strtolower(preg_replace('/[\W_]+/', '-', 'video-player-' . $node->nid . '-' . $field)),
           'style' => $style,
         ))
-      );  
+      );
     }
   }
 }
@@ -108,6 +108,28 @@ function _loft_video_get_video_types($reset = FALSE) {
 }
 
 /**
+ * Implementation of hook_loft_video
+
+ * @return array
+ *   An associate array with keys who are the node_types that contain video files
+ *   Each key is an array of fieldnames, within that node type, that contain video files
+ *   Each filename is an array with attributes: width, height
+ */
+function loft_video_loft_video() {
+  if (module_exists('loft_video_node')) {
+    return array(
+      'loft_video' => array(
+        'field_video_file' => array(
+          'width' => '746', //width in pixels
+          'height' => '420', //width in pixels
+          'type' => 'flowplayer',
+        ),
+      ),
+    );
+  }
+}
+
+/**
  * Get the video paths from a node
  */
 function _loft_video_get_video_urls($node) {
@@ -115,7 +137,7 @@ function _loft_video_get_video_urls($node) {
   $video_urls = array();
   foreach (array_keys($types[$node->type]) as $field) {
     if (isset($node->{$field}['und'][0]['uri'])) {
-      $video_urls[$field] = file_create_url($node->{$field}['und'][0]['uri']);  
+      $video_urls[$field] = file_create_url($node->{$field}['und'][0]['uri']);
     }
   }
   return $video_urls;

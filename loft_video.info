@@ -1,6 +1,6 @@
 ; $Id$
-name = Loft Video 
+name = Loft Video
 description = Custom module by In the Loft Studios to add video to a Drupal Site
 core = 7.x
-version = "7.x-dev"
+version = "7.x-1.2"
 package = In the Loft Studios

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Loft Video Node feature.
+ */
+
+include_once('loft_video_node.features.inc');

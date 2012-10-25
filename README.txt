@@ -1,7 +1,7 @@
 /* $Id$ */
 
-SUMMARY: This module is an api and must be used by another module or theme to be
-effective.
+SUMMARY: The main module is an api and must be used by another module or theme to be
+effective.  You can use loft_video_node (included) to have out-of-box functionalilty.
 
 
 REQUIREMENTS:
@@ -10,10 +10,13 @@ REQUIREMENTS:
 INSTALLATION:
 - Download and unzip this module into your modules directory.
 - Goto Administer > Site Building > Modules and enable this module.
+- A feature video content type is included to get you started
 
 
 CONFIGURATION:
-- 
+- Unless you have your own video node type, you should also enable
+  loft_video_node. Create a node an you should see the video displayed on node
+  view.
 
 
 USAGE:
